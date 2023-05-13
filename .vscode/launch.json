@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'http-nats-obj'",
+            "name": "Upload'",
             "cargo": {
                 "args": [
                     "build",
@@ -19,7 +19,25 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["-c", "obj.creds", "--nats", "localhost", "--bucket", "website", "upload", "-f", "--dir", "upload"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Serve",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=http-nats-obj",
+                    "--package=http-nats-obj"
+                ],
+                "filter": {
+                    "name": "http-nats-obj",
+                    "kind": "bin"
+                }
+            },
+            "args": ["-c", "obj.creds", "--nats", "localhost", "--bucket", "website", "serve"],
             "cwd": "${workspaceFolder}"
         },
         {
