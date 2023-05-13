@@ -56,14 +56,12 @@ pub async fn upload(
 
     let mut items = obj.list().await.unwrap();
     while let Some(Ok(object)) = items.next().await {
-        println!("object {:?}", object);
         if force {
             obj.delete(&object.name).await.unwrap();
         }
         else {
             println!("bucket is not empty, re run with --force");
         }
-        println!("object {:?}", object.name);
     }
 
     let path = PathBuf::from(path);

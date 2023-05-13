@@ -1,0 +1,29 @@
+name: Rust
+
+on:
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --release
+    - name: Zip
+      uses: TheDoctor0/zip-release@0.7.1
+      with:
+        filename: release.zip
+        path: target/release/http-nats-obj
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: release.zip
+        path: release.zip
+    
