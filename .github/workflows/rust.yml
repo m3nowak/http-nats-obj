@@ -1,8 +1,10 @@
 name: Rust
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch
+
+permissions:
+  contents: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,4 +23,8 @@ jobs:
       with:
         name: release.zip
         path: target/release/http-nats-obj
-    
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          target/release/http-nats-obj    

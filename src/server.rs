@@ -4,7 +4,7 @@ use mime;
 
 use axum::{
     extract::{Path, State},
-    http::header,
+    http::{header, StatusCode},
     response::IntoResponse,
     routing::get,
     Router,
@@ -17,13 +17,21 @@ async fn get_file(
     path: String,
     obj_str: Arc<ObjectStore>,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut object = obj_str
-        .get(path.as_str())
-        .await
-        .expect("Error getting object");
-    let mut buffer = Vec::new();
-    object.read_to_end(&mut buffer).await?;
-    Ok(buffer)
+    match obj_str.get(path.as_str()).await {
+        Ok(mut info) => {
+            if info.info.deleted {
+                Err("File not found".into())
+            }
+            else {
+                let mut buffer = Vec::new();
+                info.read_to_end(&mut buffer).await?;
+                Ok(buffer)
+            }
+        }
+        Err(_) => {
+            Err("File not found".into())
+        }
+    }
 }
 
 async fn file_exists(path: String, obj_str: Arc<ObjectStore>) -> bool {
@@ -65,8 +73,12 @@ async fn file_lookup(path: String, state: Arc<ObjectStore>) -> impl IntoResponse
         .unwrap_or(mime::APPLICATION_OCTET_STREAM);
 
     match get_file(path_read.clone(), state).await {
-        Ok(buffer) => ([(header::CONTENT_TYPE, guess.to_string())], buffer),
+        Ok(buffer) => (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, guess.to_string())],
+            buffer),
         Err(e) => (
+            StatusCode::NOT_FOUND,
             [(header::CONTENT_TYPE, mime::TEXT.to_string())],
             format!("Error: {}", e).into(),
         ),
